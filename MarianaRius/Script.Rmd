@@ -67,11 +67,11 @@ IMPORTANT: For the script to run properly an independent folder containing the d
 
 # Growth phases of a culture
 
-# ![](figures/Fig1.png)
+![](figures/Fig1.png)
 
 Logistic equation (used by growthcurver)
 
-# ![](figures/Fig2.png)
+![](figures/Fig2.png)
 
 _N__t_ = population at time _t_
 
@@ -88,13 +88,12 @@ _r_ = intrinsic growth rate
 - Script, Console, Environment, Help
 - R basics
   - making objects
-  - bject types
+  - Object types
     - numeric, character, factor, vector, data.frame, list
   - for loop
   - functions
     - c() and trick to building a recursive vector
     - head() and tail()
-    -
 
 # Pipeline
 
@@ -134,7 +133,7 @@ ns<-1
 
 ############
 ### 2. Load data
-```{r}
+```{r include=FALSE}
 library("readxl")
 allSheets<-list()
 for (i in 1:c((length(excel_sheets(fn))))){   #This will read in each sheet of excel file 'fn', if there is a blank sheet at the end of excel file this line will be "for (i in 1:c((length(excel_sheets(fn)))-1)){" 
@@ -194,6 +193,12 @@ tdif<-c(0,tdif)
 what does tdif look like?
 
 ```{r}
+head(tdif)
+```
+
+
+
+```{r}
 #create the data.frame structure and column names
 u<-data.frame(time=c(tdif))
 ro<-c("A","B","C")
@@ -221,6 +226,12 @@ colnames(u)<-c("time",df) #give each column the corresponding well name
 ```
 
 what does u look like?
+
+```{r}
+head(u)
+```
+
+
 
 ### 4.Run growthcurver
 
@@ -254,7 +265,7 @@ save(gc_out,file="aurli_growthcurver_output.rda")
 
 
 ### 6. Plot growthcurver output
-```{r}
+```{r warning=FALSE}
 d<-u #renames our data to match growthcurver's provided script
 
 num_analyses <- length(names(d)) - 1
@@ -270,7 +281,9 @@ d_gc <- data.frame(sample = character(num_analyses),
                    stringsAsFactors = FALSE)
 
 trim_at_time<-tdif[8] #set our preferred plotting range based on tdif
-#pdf("LAA-E2_growthcurver_r.pdf", height = 8.5, width = 11) #to print a pdf remove the hashtag at this line AND at line below = 'dev.off()' 
+
+pdf("results/LAA-E2_growthcurver_r.pdf", height = 8.5, width = 11) 
+
 par(mfrow = c(8,12))
 par(mar = c(0.25,0.25,0.25,0.25))
 y_lim_max <- max(d[,setdiff(names(d), "time")]) - min(d[,setdiff(names(d), "time")])
@@ -335,7 +348,7 @@ for (col_name in names(d)) {
   }
 }
 
-#dev.off() #to print a pdf remove the hashtag at this line AND at 'pdf(...)' line above
+dev.off()
 
 ```
 
