@@ -16,9 +16,7 @@ output: html_document
 1. In console run:
 
 ```{r setup}
-
-knitr::opts_knit$set(root.dir = "C:/Users/alexg/Google Drive/05-Proyectos/restlab_workshop/MarianaRius")
-
+knitr::opts_knit$set(root.dir = 'C:/Users/alexg/Google Drive/05-Proyectos/restlab_workshop/MarianaRius')
 ```
 
 
@@ -69,11 +67,11 @@ IMPORTANT: For the script to run properly an independent folder containing the d
 
 # Growth phases of a culture
 
-# ![]("figures/RackMultipart20200424-4-1p8fbov_html_490b1408a4bc51ff.png")
+# ![](figures/Fig1.png)
 
 Logistic equation (used by growthcurver)
 
-# ![]("figures/RackMultipart20200424-4-1p8fbov_html_289ba352951d9cd3.png")
+# ![](figures/Fig2.png)
 
 _N__t_ = population at time _t_
 
@@ -83,7 +81,7 @@ _N__0_ = initial population size
 
 _r_ = intrinsic growth rate
 
-![]("figures/RackMultipart20200424-4-1p8fbov_html_1bbdb586aaf8fd83.png")
+![](figures/Fig3.png)
 
 # R/ RStudio Orientation
 
@@ -114,7 +112,6 @@ We will be following this vignette: [Growthcurver](https://cran.r-project.org/we
 4. Sigma histogram
 5. Plot parameters
 
-##
 
 ## LAA-E2.xlsx
 
@@ -248,7 +245,7 @@ auc\_e = the area under the curve obtained from the optical density readings dat
 
 sigma = residual standard deviation, the estimated standard deviation of the errors // residual sum of squares from the fit of the logistic curve to the data, so larger values mean poorer fits, a parameter used to evaluate the &#39;goodness of fit&#39;
 
-```{r}
+```{r eval=FALSE}
 gc_out$note?  unique(gc_out$note) 
 save gc_out?  
 write.csv(gc_out,file="aurli_growthcurver_output.csv") 
@@ -423,131 +420,4 @@ for (i in 1:12) {
 }
 
 ```
-
-# NGE-E1-P3.xlsx
-### 1. Setup script
-
-```{r}
-options(stringsAsFactors = F)
-
-#total wells
-tw<-96
-#filename
-fn<-"NGE-E1-P3.xlsx"
-#replicates?
-x<-1
-#number of conditions
-nc<-96
-#number of strains
-ns<-1
-```
-
-### 2. Load data
-```{r}
-#excel file sheets to csv
-library("readxl")
-allSheets<-list()
-for (i in 1:c((length(excel_sheets(fn)))-1)){
-  mySheet <- read_excel(fn, sheet = i)  #This will import a sheet as a dataframe starting at datapoints.
-  write.csv(mySheet, file = paste("t", i,".csv", sep = ""), row.names = FALSE)   #This will save each sheet with the file name Sheetx, x being whichever sheet number it is
-  mySheet<-read.csv(paste("t", paste(i),".csv", sep= ""), header = T, skip = 46, stringsAsFactors=FALSE)
-  mySheet<-mySheet[,1:3]
-  allSheets[[i]]<-mySheet[1:tw,] 
-}
-```
-
-### 3. Organize data for growthcurver
-
-```{r}
-#calculate difference in time
-sto1.t<-list()
-for (i in 1:c(length(excel_sheets(fn))-1)) {
-  sto.t<-read.csv(paste("t", paste(i),".csv", sep= ""), header = F, skip = 24, nrow = 1, stringsAsFactors=FALSE)
-  #date & time
-  sto.t<-sto.t[1,2]
-  #strsplit date & replace "/" with "-"
-  date<-gsub("/", "-", paste((strsplit(sto.t, " ")[[1]][(1)]), collapse = " "))
-  #date format from m-d-y to y-m-d
-  y<-(strsplit(date, "-")[[1]][(3)])
-  m<-(strsplit(date, "-")[[1]][(1)])
-  d<-(strsplit(date, "-")[[1]][(2)])
-  tdate<-paste(y, m,d, sep = "-")
-  #put into list
-  sto1.t[[i]]<-tdate
-  #strsplit time
-  t<-paste((strsplit(sto.t, " ")[[1]][(2:3)]), collapse = " ")
-  #change 12H to 24H
-  ttime<-format(strptime(t, "%I:%M:%S %p"), format="%H:%M:%S")
-  sto1.t[[i]][2]<-ttime
-}
-sto1.t<-list.reverse(sto1.t)
-tdif<-c()
-for (i in 2:length(sto1.t)) {
-  dif<-difftime(paste(sto1.t[[i]][1],sto1.t[[i]][2], sep = " "), paste(sto1.t[[1]][1],sto1.t[[1]][2], sep = " "), units = "hours")
-  tdif<-c(tdif, dif)
-}
-tdif<-c(0,tdif)
-
-#create the data.frame structure and column names
-u<-data.frame(time=c(tdif))
-ro<-c("A","B","C","D","E","F","G","H")
-co<-c(1:12)
-df<-c() #makes a vector of all the well names used in 'ro' and 'co'
-for (i in ro) {
-  for (j in co) {
-    df<-c(df,paste(i,j,sep=""))
-  }
-}
-for (i in 1:length(df)) { #creates each well name to be a vector in existence
-  assign(df[i], c(recursive = TRUE))
-}
-
-for (i in 1:length(df)) { #assigns vector of well name and column of u with data of each time point at well placement
-  for (j in 1:length(allSheets)) {
-    assign(df[i], c(get(df[i]),as.numeric(allSheets[[j]][i,2])))#,allSheets1[[j]][2,],allSheets1[[j]][3,]))[i]))#optimization required here for more than three rows 
-  }
-  u[,(i+1)]<-get(df[i])
-}
-
-colnames(u)<-c("time",df) #give each column the corresponding well name
-```
-
-### 4. Run growthcurver
-
-```{r}
-
-```
-
-
-### 5. Plot growthcurver output
-
-```{r}
-
-```
-
-### 6. PCA & plot
-
-```{r}
-
-```
-
-### 7. Sigma histogram
-
-```{r}
-
-```
-
-### 8. Plot parameters
-
-```{r}
-library("readxl")
-allSheets<-list()
-for (i in 1:c((length(excel_sheets(fn)))-1)){   #This will read in each sheet of excel file 'fn', if there is a blank sheet at the end of excel file this line will be "for (i in 1:c((length(excel_sheets(fn)))-1)){" 
-mySheet <- read_excel(fn, sheet = i)  #This will import a sheet as a dataframe 
-  write.csv(mySheet, file = paste("t", i,".csv", sep = ""), row.names = FALSE)   #This will save each sheet as a csv with the file name 't.x', x = sheet number 
-  mySheet<-read.csv(paste("t", paste(i),".csv", sep= ""), header = T, skip = 25, stringsAsFactors=FALSE) #This will read in the data starting at the line number after 'skip='
-  mySheet<-mySheet[1:3,] #This will filter out your data [row,column], removing row names
-  allSheets[[i]]<-mySheet[1:tw,] #preserved only first three rows (aurli) and stored data as a list element in allSheets 
-```
-
 
