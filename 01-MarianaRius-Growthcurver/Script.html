@@ -649,43 +649,34 @@ sheetslist &lt;- sheetslist %&gt;%
   map(mutate,well=paste0(rows,column)) %&gt;% 
   map(mutate,OD=as.numeric(OD))</code></pre>
 <p>AllSheets is a list of dataframes. Each dataframe contains a value for OD, well, row and column.</p>
-<pre class="r"><code>sheetslist[[1]]</code></pre>
-<pre><code>## # A tibble: 96 x 4
-##    rows  column     OD well 
-##    &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;
-##  1 A     01     0.120  A01  
-##  2 B     01     0.114  B01  
-##  3 C     01     0.155  C01  
-##  4 D     01     0.117  D01  
-##  5 E     01     0.0792 E01  
-##  6 F     01     0.0966 F01  
-##  7 G     01     0.230  G01  
-##  8 H     01     0.245  H01  
-##  9 A     02     0.105  A02  
-## 10 B     02     0.103  B02  
-## # ... with 86 more rows</code></pre>
+<pre class="r"><code>sheetslist[[1]] %&gt;% 
+  head()</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   rows  column     OD well 
+##   &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;
+## 1 A     01     0.120  A01  
+## 2 B     01     0.114  B01  
+## 3 C     01     0.155  C01  
+## 4 D     01     0.117  D01  
+## 5 E     01     0.0792 E01  
+## 6 F     01     0.0966 F01</code></pre>
 <p>You can filter your wells using the filter condition, by row, column or both.</p>
 <pre class="r"><code>#Select only the first 3 rows
 allSheets &lt;- sheetslist %&gt;% 
  map(filter,rows==c(&quot;A&quot;,&quot;B&quot;,&quot;C&quot;)) %&gt;% 
   map(arrange,well)
 
-allSheets[[1]]</code></pre>
-<pre><code>## # A tibble: 12 x 4
-##    rows  column     OD well 
-##    &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;
-##  1 A     01     0.120  A01  
-##  2 A     04     0.0416 A04  
-##  3 A     07     0.0818 A07  
-##  4 A     10     0.0405 A10  
-##  5 B     01     0.114  B01  
-##  6 B     04     0.0419 B04  
-##  7 B     07     0.0513 B07  
-##  8 B     10     0.0399 B10  
-##  9 C     01     0.155  C01  
-## 10 C     04     0.0424 C04  
-## 11 C     07     0.319  C07  
-## 12 C     10     0.0412 C10</code></pre>
+allSheets[[1]] %&gt;%
+  head()</code></pre>
+<pre><code>## # A tibble: 6 x 4
+##   rows  column     OD well 
+##   &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;
+## 1 A     01     0.120  A01  
+## 2 A     04     0.0416 A04  
+## 3 A     07     0.0818 A07  
+## 4 A     10     0.0405 A10  
+## 5 B     01     0.114  B01  
+## 6 B     04     0.0419 B04</code></pre>
 </div>
 <div id="organize-data-for-growthcurver" class="section level3">
 <h3>3. Organize data for growthcurver</h3>
@@ -713,26 +704,16 @@ library(lubridate)</code></pre>
 dur&lt;-time$dur %&gt;%
   map_dfc(dseconds)</code></pre>
 <p>what does time look like?</p>
-<pre class="r"><code>time</code></pre>
-<pre><code>## # A tibble: 16 x 3
-##    ID               time                dur        
-##    &lt;chr&gt;            &lt;dttm&gt;              &lt;drtn&gt;     
-##  1 LAA-E2-S1-T01-P1 2015-11-13 12:49:00      0 secs
-##  2 LAA-E2-S1-T02-P1 2015-11-13 12:51:19    139 secs
-##  3 LAA-E2-S1-T03-P1 2015-11-13 12:53:06    246 secs
-##  4 LAA-E2-S1-T04-P1 2015-11-13 22:55:33  36393 secs
-##  5 LAA-E2-S1-T05-P1 2015-11-14 15:27:31  95911 secs
-##  6 LAA-E2-S1-T06-P1 2015-11-14 21:30:52 117712 secs
-##  7 LAA-E2-S1-T07-P1 2015-11-15 15:26:55 182275 secs
-##  8 LAA-E2-S1-T08-P1 2015-11-15 23:24:34 210934 secs
-##  9 LAA-E2-S1-T09-P1 2015-11-16 13:42:21 262401 secs
-## 10 LAA-E2-S1-T10-P1 2015-11-16 18:05:13 278173 secs
-## 11 LAA-E2-S1-T11-P1 2015-11-16 19:41:59 283979 secs
-## 12 LAA-E2-S1-T12-P1 2015-11-17 09:24:00 333300 secs
-## 13 LAA-E2-S1-T13-P1 2015-11-18 10:41:47 424367 secs
-## 14 LAA-E2-S1-T14-P1 2015-11-18 20:53:13 461053 secs
-## 15 LAA-E2-S1-T15-P1 2015-11-19 10:02:12 508392 secs
-## 16 LAA-E2-S1-T16-P1 2015-11-19 17:44:07 536107 secs</code></pre>
+<pre class="r"><code>time %&gt;% head() </code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   ID               time                dur        
+##   &lt;chr&gt;            &lt;dttm&gt;              &lt;drtn&gt;     
+## 1 LAA-E2-S1-T01-P1 2015-11-13 12:49:00      0 secs
+## 2 LAA-E2-S1-T02-P1 2015-11-13 12:51:19    139 secs
+## 3 LAA-E2-S1-T03-P1 2015-11-13 12:53:06    246 secs
+## 4 LAA-E2-S1-T04-P1 2015-11-13 22:55:33  36393 secs
+## 5 LAA-E2-S1-T05-P1 2015-11-14 15:27:31  95911 secs
+## 6 LAA-E2-S1-T06-P1 2015-11-14 21:30:52 117712 secs</code></pre>
 <pre class="r"><code>allSheets1 &lt;- allSheets %&gt;%
   map(select,well,OD)%&gt;%
   map(spread,key=&quot;well&quot;,value=&quot;OD&quot;)
@@ -753,7 +734,8 @@ final &lt;- cbind(t,df) %&gt;%
   mutate(time=as.numeric(time))%&gt;%
   as.data.frame()</code></pre>
 <p>what does final look like?</p>
-<pre class="r"><code>head(final)</code></pre>
+<pre class="r"><code>final %&gt;% 
+  head()</code></pre>
 <pre><code>##     time    A01    A04    A07    A10    B01    B04    B07    B10    C01    C04
 ## 1      0 0.0374 0.0443 0.0385 0.0387 0.0406 0.0464 0.0394 0.0393 0.0418 0.0474
 ## 2    139 0.0389 0.0449 0.0385 0.0379 0.0394 0.0463 0.0385 0.0395 0.0457 0.0482
@@ -770,22 +752,9 @@ final &lt;- cbind(t,df) %&gt;%
 ## 6 0.0419 0.0400</code></pre>
 <pre class="r"><code>table1 &lt;- final %&gt;% as_tibble() %&gt;% 
   gather(2:dim(final)[2],key = &quot;ID&quot;,value=&quot;OD&quot;)
-table1</code></pre>
-<pre><code>## # A tibble: 192 x 3
-##      time ID        OD
-##     &lt;dbl&gt; &lt;chr&gt;  &lt;dbl&gt;
-##  1      0 A01   0.0374
-##  2    139 A01   0.0389
-##  3    246 A01   0.0391
-##  4  36393 A01   0.0412
-##  5  95911 A01   0.0722
-##  6 117712 A01   0.256 
-##  7 182275 A01   0.361 
-##  8 210934 A01   0.321 
-##  9 262401 A01   0.309 
-## 10 278173 A01   0.206 
-## # ... with 182 more rows</code></pre>
-<pre class="r"><code>table1 %&gt;% ggplot(aes(x=time,y=OD,color=ID))+
+
+
+table1 %&gt;% ggplot(aes(x=time,y=OD,color=ID))+
   geom_point()+
   facet_wrap(.~ID)+
   theme_minimal()+
@@ -801,7 +770,8 @@ table1</code></pre>
 <pre class="r"><code>library(&quot;growthcurver&quot;)
 gc_out &lt;- SummarizeGrowthByPlate(final)</code></pre>
 <p>what does gc_out look like?</p>
-<pre class="r"><code>head(gc_out)</code></pre>
+<pre class="r"><code>gc_out %&gt;% 
+  head()</code></pre>
 <pre><code>##   sample           k           n0            r     t_mid     t_gen      auc_l
 ## 1    A01 0.168750024 1.820308e-17 3.689265e-04  99655.63  1878.822 73651.1798
 ## 2    A04 0.001499999 3.240612e-03 1.627278e-05 -38194.17 42595.512   875.1569
@@ -981,8 +951,7 @@ as_data_frame(list(PC1=pca.res$x[,1],
 </div>
 <div id="sigma-histogram" class="section level3">
 <h3>7. Sigma histogram</h3>
-<pre class="r"><code>par(mfrow=c(1,1),mar = c(3.8,3.8,2,2))
-# Plot a histogram of the sigma values in order to check for outliers
+<pre class="r"><code># Plot a histogram of the sigma values in order to check for outliers
 gc_out %&gt;% 
   ggplot(aes(x=sigma))+
   theme_minimal()+

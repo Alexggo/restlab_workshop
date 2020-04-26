@@ -174,7 +174,8 @@ sheetslist <- sheetslist %>%
 
 AllSheets is a list of dataframes. Each dataframe contains a value for OD, well, row and column.
 ```{r}
-sheetslist[[1]]
+sheetslist[[1]] %>% 
+  head()
 ```
 
 
@@ -185,7 +186,8 @@ allSheets <- sheetslist %>%
  map(filter,rows==c("A","B","C")) %>% 
   map(arrange,well)
 
-allSheets[[1]]
+allSheets[[1]] %>%
+  head()
 ```
 
 
@@ -215,7 +217,7 @@ dur<-time$dur %>%
 what does time look like?
 
 ```{r}
-time
+time %>% head() 
 ```
 
 
@@ -244,14 +246,17 @@ final <- cbind(t,df) %>%
 what does final look like?
 
 ```{r}
-head(final)
+final %>% 
+  head()
+
 ```
 
 
 ```{r}
 table1 <- final %>% as_tibble() %>% 
   gather(2:dim(final)[2],key = "ID",value="OD")
-table1
+
+
 table1 %>% ggplot(aes(x=time,y=OD,color=ID))+
   geom_point()+
   facet_wrap(.~ID)+
@@ -274,7 +279,8 @@ gc_out <- SummarizeGrowthByPlate(final)
 what does gc_out look like?
 
 ```{r}
-head(gc_out)
+gc_out %>% 
+  head()
 ```
 
 
@@ -424,7 +430,6 @@ as_data_frame(list(PC1=pca.res$x[,1],
 ### 7. Sigma histogram
 
 ```{r}
-par(mfrow=c(1,1),mar = c(3.8,3.8,2,2))
 # Plot a histogram of the sigma values in order to check for outliers
 gc_out %>% 
   ggplot(aes(x=sigma))+
