@@ -2,7 +2,9 @@
 title: "Script"
 author: "Mariana Rius"
 date: "4/24/2020"
-output: html_document
+output:
+  md_document:
+    variant: markdown_github
 ---
 
 # Setup
@@ -259,15 +261,12 @@ table1 %>% ggplot(aes(x=time,y=OD,color=ID))+
 ```
 
 
-
-
 ### 4.Run growthcurver
 
 ```{r}
 library("growthcurver")
 gc_out <- SummarizeGrowthByPlate(final)
 ```
-
 
 
 what does gc_out look like?
@@ -425,45 +424,25 @@ as_data_frame(list(PC1=pca.res$x[,1],
 ```{r}
 par(mfrow=c(1,1),mar = c(3.8,3.8,2,2))
 # Plot a histogram of the sigma values in order to check for outliers
-hist(gc_out$sigma, breaks= 30,main = "Histogram of sigma values", xlab = "sigma", col = "palegreen3", xlim = c(0, max(gc_out$sigma)))
-
+gc_out %>% 
+  ggplot(aes(x=sigma))+
+  theme_minimal()+
+  labs(title = "Histogram of sigma values",
+              caption = "Data source: LAA-E2.xlsx")+
+  geom_histogram(fill="lightblue",col="darkblue")
 ```
 
 ### 8. Plot parameters
 
 ```{r}
-par(mfrow = c(8,12))
-par(mar = c(0.25,0.25,0.25,0.25))
-
-y<-c(min(gc_out$k), max(gc_out$k))
-for (i in 1:12) {
-  boxplot(gc_out$k[c(i,i+12, i+24)], col="maroon", ylim=y, yaxt="n")
-}
-
-y<-c(min(gc_out$r), max(gc_out$r))
-for (i in 1:12) {
-  boxplot(gc_out$r[c(i,i+12, i+24)], col="light coral", ylim=y,yaxt="n")
-}
-
-y<-c(min(gc_out$t_mid), max(gc_out$t_mid))
-for (i in 1:12) {
-  boxplot(gc_out$t_mid[c(i,i+12, i+24)], col="goldenrod3", ylim=y,yaxt="n")
-}
-
-y<-c(min(gc_out$t_gen), max(gc_out$t_gen))
-for (i in 1:12) {
-  boxplot(gc_out$t_gen[c(i,i+12, i+24)], col="midnightblue", ylim=y,yaxt="n")
-}
-
-y<-c(min(gc_out$auc_l), max(gc_out$auc_l))
-for (i in 1:12) {
-  boxplot(gc_out$auc_l[c(i,i+12, i+24)], col="mediumpurple3", ylim=y,yaxt="n")
-}
-
-y<-c(min(gc_out$auc_e), max(gc_out$auc_e))
-for (i in 1:12) {
-  boxplot(gc_out$auc_e[c(i,i+12, i+24)], col="tomato3", ylim=y,yaxt="n")
-}
-
+gc_out %>%
+  gather(2:9,key="parameter",value = "value") %>% 
+  select(-note) %>% 
+  ggplot(aes(y=value,x=parameter))+
+  theme_minimal()+
+  facet_wrap(.~parameter,scales="free_y")+
+  labs(title = "Distribution of the parameter",
+              caption = "Data source: LAA-E2.xlsx")+
+  geom_boxplot()
 ```
 
