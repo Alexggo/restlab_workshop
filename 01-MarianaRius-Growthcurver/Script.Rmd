@@ -145,6 +145,7 @@ exceltable <- sheets  %>%
   as.list() %>% 
   map(read_excel,path=fn,col_names = FALSE) %>% 
   map(as_tibble)
+
 names(exceltable) <- paste("t-", sheets, sep = "")
 
 
@@ -192,7 +193,8 @@ timelist <- exceltable  %>%
   map(select,2) %>% 
   map(slice,23:24)
 
-vec <- timelist %>% unlist() 
+vec <- timelist %>%
+  unlist() 
 vec <- vec[!is.na(vec)]
 
 library(lubridate)
@@ -202,10 +204,11 @@ time <- data.frame(ID=sheets,
   arrange(time)%>%
   mutate(dur = time - time[1]) 
 
-dur<-time$dur %>% map_dfc(dseconds) %>% as.list()
+dur<-time$dur %>%
+  map_dfc(dseconds)
 ```
 
-what does dur look like?
+what does time look like?
 
 ```{r}
 time
@@ -217,12 +220,21 @@ allSheets1 <- allSheets %>%
   map(select,well,OD)%>%
   map(spread,key="well",value="OD")
 
+df <- bind_rows(allSheets1, .id = "ID") %>%
+  arrange(ID) %>% 
+  as.data.frame()
 
-df <- bind_rows(allSheets1, .id = "ID") %>% arrange(ID) %>% as.data.frame()
-t <- time %>% arrange(ID)%>% select(-ID) %>% as.data.frame()
+t <- time %>% 
+  arrange(ID)%>%
+  select(-ID) %>%
+  as.data.frame()
 
-final <- cbind(t,df) %>%  as.tibble() %>% select(-ID,-time) %>%  rename(time=dur) %>% mutate(time=as.numeric(time))%>%  as.data.frame()
-
+final <- cbind(t,df) %>%
+  as_tibble() %>%
+  select(-ID,-time) %>%
+  rename(time=dur) %>%
+  mutate(time=as.numeric(time))%>%
+  as.data.frame()
 ```
 
 what does final look like?
@@ -244,6 +256,11 @@ gc_out <- SummarizeGrowthByPlate(final)
 
 what does gc_out look like?
 
+```{r}
+head(gc_out)
+```
+
+
 Additional parameters provided in gc\_out
 
 t\_mid _= t, ½ K,_ the time at which the population density reaches half the carrying capacity
@@ -263,7 +280,8 @@ save(gc_out,file="results/aurli_growthcurver_output.rda")
 
 
 ### 6. Plot growthcurver output
-```{r warning=FALSE}
+
+```{r}
 d<-final #renames our data to match growthcurver's provided script
 
 num_analyses <- length(names(d)) - 1
@@ -278,10 +296,10 @@ d_gc <- data.frame(sample = character(num_analyses),
                    sigma = numeric(num_analyses),
                    stringsAsFactors = FALSE)
 
-trim_at_time<- as.numeric(dur[[length(dur)]])#set our preferred plotting range based on tdif
+trim_at_time<- as.numeric(dur[length(dur)])#set our preferred plotting range based on tdif
 
 
-pdf("results/LAA-E2_growthcurver_r.pdf", height = 8.5, width = 11) 
+#pdf("results/LAA-E2_growthcurver_r.pdf", height = 8.5, width = 11) 
 
 par(mfrow = c(8,12))
 par(mar = c(0.25,0.25,0.25,0.25))
@@ -347,7 +365,7 @@ for (col_name in names(d)) {
   }
 }
 
-dev.off()
+#dev.off()
 
 ```
 
