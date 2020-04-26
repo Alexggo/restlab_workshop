@@ -244,6 +244,22 @@ head(final)
 ```
 
 
+```{r}
+table1 <- final %>% as_tibble() %>% 
+  gather(2:dim(final)[2],key = "ID",value="OD")
+table1
+table1 %>% ggplot(aes(x=time,y=OD,color=ID))+
+  geom_point()+
+  facet_wrap(.~ID)+
+  theme_minimal()+
+  geom_smooth(se=FALSE)+
+  labs(title = "Growth Experiments",
+              subtitle = "Plots of Optical Density as a function of time",
+              caption = "Data source: LAA-E2.xlsx")
+```
+
+
+
 
 ### 4.Run growthcurver
 
