@@ -7,81 +7,84 @@ output: html_document
 
 # Setup
 
-1. Install on your own computer:
+0. Requirements:
 
 [R](https://www.r-project.org/)
 
 [RStudio](https://rstudio.com/products/rstudio/download/)
 
-1. In console run:
+In console run:
 
 ```{r setup}
-knitr::opts_knit$set(root.dir = 'C:/Users/alexg/Google Drive/05-Proyectos/restlab_workshop/MarianaRius')
+knitr::opts_knit$set(root.dir = 'C:/Users/alexg/Google Drive/05-Proyectos/restlab_workshop/01-MarianaRius-Growthcurver/')
+
+#Or setwd() 
+#setwd('C:/Users/alexg/Google Drive/05-Proyectos/restlab_workshop/01-MarianaRius-Growthcurver/')
 ```
 
 
-install.packages("readxl")
+Install the packages
+
+```{r eval=FALSE, include=TRUE}
+install.packages("tidyverse")
 install.packages("rlist")
 install.packages("growthcurver")
-install.packages("dplyr")
-install.packages("ggplot2")
-
+install.packages("lubridate")
+```
 
 
 1. Download datasets or locate your own data you would like to use.
 
 IMPORTANT: For the script to run properly an independent folder containing the data file is 
 
-# Datasets provided:
+- Datasets provided:
 
-## LAA-E2.xlsx
+    - LAA-E2.xlsx
+      - OD data - Single reads per well
+      - LAA = Laby Antibiotic Assay
+      - [plate setup](https://docs.google.com/presentation/d/1jRHy32pm0gParXaoHVKo8pyVgZAvbHmZJvZlcpzZYKc/edit?usp=sharing)
+      - 96 wells
+      - 16 time points
+      - No media blank
+      - Excel file
+        - sheets arranged reverse chronologically (most recent **first** )
+        - OD reads start at row 27 (header = row 26)
+        - Date and time on row 23
+        - Last sheet is not blank
 
-- OD data - Single reads per well
-- LAA = Laby Antibiotic Assay
-  - [plate setup](https://docs.google.com/presentation/d/1jRHy32pm0gParXaoHVKo8pyVgZAvbHmZJvZlcpzZYKc/edit?usp=sharing)
-  - 96 wells
-  - 16 time points
-  - No media blank
-- Excel file
-  - sheets arranged reverse chronologically (most recent **first** )
-  - OD reads start at row 27 (header = row 26)
-  - Date and time on row 23
-  - Last sheet is not blank
-
-## NGE-E1-P3.xlsx
-
-- OD Data - Multiple reads per well
-- NGE = Nutrient Growth Experiment
-  - [plate setup](https://docs.google.com/presentation/d/1Fe_pQ2ebTqtWHqC9wkUPmBWrXytWQm8loQvxyXw0EWs/edit?usp=sharing)
-  - 96 wells
-  - 6 time points
-  - No media blank
-- Excel file
-  - Sheets arranged reverse chronologically (most recent **first** )
-  - OD reads start at row 48 (header = row 47)
-  - Date and time on row 25
-  - Last sheet is blank
+    - NGE-E1-P3.xlsx
+      - OD Data - Multiple reads per well
+      - NGE = Nutrient Growth Experiment
+      - [plate setup](https://docs.google.com/presentation/d/1Fe_pQ2ebTqtWHqC9wkUPmBWrXytWQm8loQvxyXw0EWs/edit?usp=sharing)
+      - 96 wells
+      - 6 time points
+      - No media blank
+      - Excel file
+        - Sheets arranged reverse chronologically (most recent **first** )
+        - OD reads start at row 48 (header = row 47)
+        - Date and time on row 25
+        - Last sheet is blank
 
 
 # Growthcurver Intro
 
-# Growth phases of a culture
+## Growth phases of a culture
 
 ![](figures/Fig1.png)
 
 Logistic equation (used by growthcurver)
 
+$$N_{t}=\frac{K}{1+\frac{K-N_{0}}{N_{0}}e^{-rt}}$$
+
+$N_{t}$ = population at time $t$
+
+$K$ = carrying capacity
+
+$N_{0}$ = initial population size
+
+$r$ = intrinsic growth rate
+
 ![](figures/Fig2.png)
-
-_N__t_ = population at time _t_
-
-_K_ = carrying capacity
-
-_N__0_ = initial population size
-
-_r_ = intrinsic growth rate
-
-![](figures/Fig3.png)
 
 # R/ RStudio Orientation
 
@@ -101,19 +104,17 @@ We will be following this vignette: [Growthcurver](https://cran.r-project.org/we
 
 ## Pipeline breakdown:
 
-1. Setup script
-2. Load data
-3. Organize data for growthcurver
-
-1. Run growthcurver
-2. Plot growthcurver output
-3. PCA &amp; plot
-4. Sigma histogram
-5. Plot parameters
+  1. Setup script
+  2. Load data
+  3. Organize data for growthcurver
+  4. Run growthcurver
+  5. Plot growthcurver output
+  6. PCA &amp; plot
+  7. Sigma histogram
+  8. Plot parameters
 
 
 ## LAA-E2.xlsx
-
 
 ### 1. Setup script
 
@@ -122,7 +123,7 @@ options(stringsAsFactors = F)
 #total wells
 tw<-96
 #filename
-fn<-"data/LAA-E2//LAA-E2.xlsx"
+fn<-"data/LAA-E2.xlsx"
 #replicates?
 x<-3
 #number of antibiotic concentrations
@@ -133,102 +134,101 @@ ns<-1
 
 ############
 ### 2. Load data
-```{r include=FALSE}
+```{r echo=TRUE}
+library("tidyverse")
 library("readxl")
-allSheets<-list()
-for (i in 1:c((length(excel_sheets(fn))))){   #This will read in each sheet of excel file 'fn', if there is a blank sheet at the end of excel file this line will be "for (i in 1:c((length(excel_sheets(fn)))-1)){" 
-mySheet <- read_excel(fn, sheet = i)  #This will import a sheet as a dataframe 
-  write.csv(mySheet, file = paste("t", i,".csv", sep = ""), row.names = FALSE)   #This will save each sheet as a csv with the file name 't.x', x = sheet number 
-  mySheet<-read.csv(paste("t", paste(i),".csv", sep= ""), header = T, skip = 25, stringsAsFactors=FALSE) #This will read in the data starting at the line number after 'skip='
-  mySheet<-mySheet[,2:13] #This will filter out your data [row,column], removing row names
-  allSheets[[i]]<-mySheet[1:3,] #preserved only first three rows (aurli) and stored data as a list element in allSheets 
+
+sheets <- excel_sheets(fn)
+
+
+exceltable <- sheets  %>%
+  as.list() %>% 
+  map(read_excel,path=fn,col_names = FALSE) %>% 
+  map(as_tibble)
+names(exceltable) <- paste("t-", sheets, sep = "")
+
+
+sheetslist <- exceltable %>% 
+  map(slice,27:34) %>% #This selects the OD values
+  map(select,-1)
+
+
+
+for (i in 1:length(sheetslist)){
+  colnames(sheetslist[[i]]) <- as.character(c(paste0(0,1:9),10:12))
+  sheetslist[[i]]$rows <- LETTERS[1:8]
+  sheetslist[[i]] <- sheetslist[[i]] %>% gather(1:12,key="column",value="OD")
 }
+
+sheetslist <- sheetslist %>%
+  map(as.tibble) %>% 
+  map(mutate,well=paste0(rows,column)) %>% 
+  map(mutate,OD=as.numeric(OD))
 ```
 
 
-what does allSheets look like?
+AllSheets is a list of dataframes. Each dataframe contains a value for OD, well, row and column.
 ```{r}
-head(allSheets)
+sheetslist[[1]]
 ```
 
+
+You can filter your wells using the filter condition, by row, column or both.
+```{r}
+#Select only the first 3 rows
+allSheets <- sheetslist %>% 
+ map(filter,rows==c("A","B","C")) %>% 
+  map(arrange,well)
+
+allSheets[[1]]
+```
 
 
 ### 3. Organize data for growthcurver
 
 ```{r}
-#reverse list order for excel files in reverse chronological order
-library("rlist")
-allSheets1<-list.reverse(allSheets)
-
 #calculate difference in time
-sto1.t<-list()
-for (i in 1:c(length(excel_sheets(fn)))) {
-  sto.t<-read.csv(paste("t", paste(i),".csv", sep= ""), header = F, skip = 22, nrow = 1, stringsAsFactors=FALSE)
-  #date & time
-  sto.t<-sto.t[1,2]
-  #strsplit date & replace "/" with "-"
-  date<-gsub("/", "-", paste((strsplit(sto.t, " ")[[1]][(1)]), collapse = " "))
-  #date format from m-d-y to y-m-d
-  y<-(strsplit(date, "-")[[1]][(3)])
-  m<-(strsplit(date, "-")[[1]][(1)])
-  d<-(strsplit(date, "-")[[1]][(2)])
-  tdate<-paste(y, m,d, sep = "-")
-  #put into list
-  sto1.t[[i]]<-tdate
-  #strsplit time
-  t<-paste((strsplit(sto.t, " ")[[1]][(2:3)]), collapse = " ")
-  #change 12H to 24H
-  ttime<-format(strptime(t, "%I:%M:%S %p"), format="%H:%M:%S")
-  sto1.t[[i]][2]<-ttime
-}
-sto1.t<-list.reverse(sto1.t)
-tdif<-c()
-for (i in 2:length(sto1.t)) {
-  dif<-difftime(paste(sto1.t[[i]][1],sto1.t[[i]][2], sep = " "), paste(sto1.t[[1]][1],sto1.t[[1]][2], sep = " "), units = "hours")
-  tdif<-c(tdif, dif)
-}
-tdif<-c(0,tdif)
+timelist <- exceltable  %>% 
+  map(select,2) %>% 
+  map(slice,23:24)
+
+vec <- timelist %>% unlist() 
+vec <- vec[!is.na(vec)]
+
+library(lubridate)
+time <- data.frame(ID=sheets,
+                   time = mdy_hms(vec)) %>% 
+  as_tibble() %>% 
+  arrange(time)%>%
+  mutate(dur = time - time[1]) 
+
+dur<-time$dur %>% map_dfc(dseconds) %>% as.list()
 ```
 
-what does tdif look like?
+what does dur look like?
 
 ```{r}
-head(tdif)
+time
 ```
 
 
-
 ```{r}
-#create the data.frame structure and column names
-u<-data.frame(time=c(tdif))
-ro<-c("A","B","C")
-co<-c(1:12)
+allSheets1 <- allSheets %>%
+  map(select,well,OD)%>%
+  map(spread,key="well",value="OD")
 
-df<-c() #makes a vector of all the well names used in 'ro' and 'co'
-for (i in (unique(ro))) {
-  for (j in (unique(co))) {
-    df<-c(df,paste(i,j,sep=""))
-  }
-}
 
-for (i in 1:length(df)) { #creates each well name to be a vector in existence
-  assign(df[i], c(recursive = TRUE))
-}
+df <- bind_rows(allSheets1, .id = "ID") %>% arrange(ID) %>% as.data.frame()
+t <- time %>% arrange(ID)%>% select(-ID) %>% as.data.frame()
 
-for (i in 1:length(df)) { #assigns vector of well name and column of u with data of each time point at well placement
-  for (j in 1:length(allSheets1)) {
-    assign(df[i], c(get(df[i]),as.numeric(c(allSheets1[[j]][1,],allSheets1[[j]][2,],allSheets1[[j]][3,]))[i])) # makes a vector of data to sleect based on df[i] // optimization required here for more than three rows 
-  }
-  u[,(i+1)]<-get(df[i])
-}
+final <- cbind(t,df) %>%  as.tibble() %>% select(-ID,-time) %>%  rename(time=dur) %>% mutate(time=as.numeric(time))%>%  as.data.frame()
 
-colnames(u)<-c("time",df) #give each column the corresponding well name
 ```
 
-what does u look like?
+what does final look like?
 
 ```{r}
-head(u)
+head(final)
 ```
 
 
@@ -237,7 +237,7 @@ head(u)
 
 ```{r}
 library("growthcurver")
-gc_out <- SummarizeGrowthByPlate(u)
+gc_out <- SummarizeGrowthByPlate(final)
 ```
 
 
@@ -257,16 +257,14 @@ auc\_e = the area under the curve obtained from the optical density readings dat
 sigma = residual standard deviation, the estimated standard deviation of the errors // residual sum of squares from the fit of the logistic curve to the data, so larger values mean poorer fits, a parameter used to evaluate the &#39;goodness of fit&#39;
 
 ```{r eval=FALSE}
-gc_out$note?  unique(gc_out$note) 
-save gc_out?  
-write.csv(gc_out,file="aurli_growthcurver_output.csv") 
-save(gc_out,file="aurli_growthcurver_output.rda")
+write.csv(gc_out,file="results/aurli_growthcurver_output.csv") 
+save(gc_out,file="results/aurli_growthcurver_output.rda")
 ```
 
 
 ### 6. Plot growthcurver output
 ```{r warning=FALSE}
-d<-u #renames our data to match growthcurver's provided script
+d<-final #renames our data to match growthcurver's provided script
 
 num_analyses <- length(names(d)) - 1
 d_gc <- data.frame(sample = character(num_analyses),
@@ -280,7 +278,8 @@ d_gc <- data.frame(sample = character(num_analyses),
                    sigma = numeric(num_analyses),
                    stringsAsFactors = FALSE)
 
-trim_at_time<-tdif[8] #set our preferred plotting range based on tdif
+trim_at_time<- as.numeric(dur[[length(dur)]])#set our preferred plotting range based on tdif
+
 
 pdf("results/LAA-E2_growthcurver_r.pdf", height = 8.5, width = 11) 
 
