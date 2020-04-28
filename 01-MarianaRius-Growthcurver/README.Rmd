@@ -2,11 +2,7 @@
 title: "Script"
 author: "Mariana Rius"
 date: "4/24/2020"
-output:
-  html_document:
-  md_document:
-    variant: markdown_github
-  
+output: github_document
 ---
 
 # Setup
