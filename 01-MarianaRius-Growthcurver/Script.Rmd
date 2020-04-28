@@ -17,10 +17,15 @@ output:
 
 [RStudio](https://rstudio.com/products/rstudio/download/)
 
+
 In console run:
+
 
 ```{r setup}
 knitr::opts_knit$set(root.dir = 'C:/Users/alexg/Google Drive/05-Proyectos/restlab_workshop/01-MarianaRius-Growthcurver/')
+
+#If you want to convert this Rmarkdown document into an R script. Run the following.
+#knitr::purl("pathtofile/file.Rmd",documentation=2)
 
 #Or setwd() 
 #setwd('C:/Users/alexg/Google Drive/05-Proyectos/restlab_workshop/01-MarianaRius-Growthcurver/')
@@ -208,10 +213,9 @@ time <- data.frame(ID=sheets,
                    time = mdy_hms(vec)) %>% 
   as_tibble() %>% 
   arrange(time)%>%
-  mutate(dur = time - time[1]) 
-
-dur<-time$dur %>%
-  map_dfc(dseconds)
+  mutate(dur = time - time[1]) %>% 
+  mutate(dur=as.duration(dur)) %>% 
+  mutate(dur=as.numeric(dur,"hours"))
 ```
 
 what does time look like?
@@ -264,11 +268,15 @@ table1 %>% ggplot(aes(x=time,y=OD,color=ID))+
   geom_smooth(se=FALSE)+
   labs(title = "Growth Experiments",
               subtitle = "Plots of Optical Density as a function of time",
-              caption = "Data source: LAA-E2.xlsx")
+              caption = "Data source: LAA-E2.xlsx",x="Time (hours)",y="Optical Density")
 ```
 
 
 ### 4.Run growthcurver
+
+Take a look at the vignettes for growthcurver
+[Growthcurver vignettes](https://cran.r-project.org/web/packages/growthcurver/vignettes/Growthcurver-vignette.html)
+
 
 ```{r}
 library("growthcurver")
@@ -305,8 +313,17 @@ save(gc_out,file="results/aurli_growthcurver_output.rda")
 ### 6. Plot growthcurver output
 
 ```{r}
-d<-final #renames our data to match growthcurver's provided script
+d<-final
+gc_out <- SummarizeGrowthByPlate(d, plot_fit = TRUE, 
+                                 plot_file = "results/gc_plots.pdf")
+```
 
+
+
+```{r}
+# Let's create an output data frame to store the results in. 
+# We'll create it so that it is the right size (it's faster this way!), 
+# but leave it empty.
 num_analyses <- length(names(d)) - 1
 d_gc <- data.frame(sample = character(num_analyses),
                    k = numeric(num_analyses),
@@ -319,7 +336,13 @@ d_gc <- data.frame(sample = character(num_analyses),
                    sigma = numeric(num_analyses),
                    stringsAsFactors = FALSE)
 
-trim_at_time<- as.numeric(dur[length(dur)])#set our preferred plotting range based on tdif
+# Truncate or trim the input data to observations occuring in the first 20 hours.
+# Remember that the times in these sample data are reported in hours. To use  
+# minutes (or to trim at a different time), change the next line of code. 
+# For example, if you still would like to trim at 20 hours, but your time data 
+# are reported in minutes use: trim_at_time <- 20 * 60
+
+trim_at_time<- as.numeric(max(time$dur))#set our preferred plotting range based on tdif
 
 
 #pdf("results/LAA-E2_growthcurver_r.pdf", height = 8.5, width = 11) 
@@ -371,20 +394,12 @@ for (col_name in names(d)) {
     
     # Finally, plot the raw data and the fitted curve
     # Here, I'll just print some of the data points to keep the file size smaller
-    n_obs <- length(gc_fit$data$t)
-    idx_to_plot <- 1:20 / 20 * n_obs
-    plot(gc_fit$data$t[idx_to_plot], gc_fit$data$N[idx_to_plot], 
-         pch = 20, 
-         xlim = c(0, trim_at_time), 
-         ylim = c(0, y_lim_max),
-         cex = 0.6, xaxt = "n", yaxt = "n")
-    text(x = trim_at_time / 4, y = y_lim_max, labels = col_name, pos = 1)
-    if (gc_fit$model=="") {
-      gc_fit$model<-rep(0,length(tdif[1:grep(trim_at_time, tdif)])-1)
-      lines(gc_fit$data$t, rep(0,length(tdif[1:grep(trim_at_time, tdif)])-1), col = "indianred3")
-    }
-    else #I added 'if...else' for data where no model was fit plots line at y=0
-      lines(gc_fit$data$t, predict(gc_fit$model), col = "indianred3")
+    ggplot(as.data.frame(gc_fit$data),aes(x=t,y=N))+
+      xlim(c(0, trim_at_time))+
+      ylim(c(0, y_lim_max))+
+      geom_point()+
+      theme_minimal()+
+      labs(title=col_name)
   }
 }
 
