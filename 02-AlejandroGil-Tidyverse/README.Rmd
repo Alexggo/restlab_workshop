@@ -209,18 +209,39 @@ mpg %>%
 
 Learn more about [dplyr](https://dplyr.tidyverse.org/).
 
+
+## Broom
+Broom is a package associated with the tidyverse that is used to summarize statistical models.
+
+```{r}
+library(broom)
+
+mod <- lm(mpg ~ wt + qsec, data = mtcars)
+
+mod
+```
+
+```{r}
+tidy(mod)
+```
+
+```{r}
+augment(mod)
+```
+
+```{r}
+glance(mod)
+```
+
+Learn more about broom and how to combine it with dplyr [here](https://cran.r-project.org/web/packages/broom/vignettes/broom_and_dplyr.html)
+
+
 ### Ggplot2
 Ggplot2 is used for data visualization. It is based in the grammar of graphics.
 If you want to be a master of ggplot, you should watch the videos by Thomas Lin Pedersen.
 
 [Intro To ggplot 2](https://www.youtube.com/watch?v=h29g21z0a68)
 This video will show you the grammar of graphics and an introduction to ggplot2. The code below was used by Thomas Lin Pedersen in his online seminar.
-
-### Datasets
-We will use an assortment of datasets throughout the document. The purpose is 
-mostly to showcase different plots, and less on getting some divine insight into
-the world. While not necessary we will call `data(<dataset>)` before using a new
-dataset to indicate the introduction of a new dataset.
 
 ## Introduction
 We will look at the basic ggplot2 use using the faithful dataset, giving 
@@ -270,54 +291,6 @@ ggplot(faithful, aes(x = eruptions, y = waiting)) +
   geom_point()
 ```
 
-#### Exercise
-
-Modify the code below to make the points larger squares and slightly transparent.
-See `?geom_point` for more information on the point layer.
-
-```{r}
-ggplot(faithful) + 
-  geom_point(aes(x = eruptions, y = waiting))
-```
-
-Hint 1: transparency is controlled with `alpha`, and shape with `shape`
-Hint 2: rememberthe difference between mapping and setting aesthetics
-
-* * *
-
-Colour the two distributions in the histogram with different colours
-
-```{r}
-ggplot(faithful) + 
-  geom_histogram(aes(x = eruptions))
-```
-
-Hint 1: For polygons you can map two different colour-like aesthetics: `colour` 
-(the colour of the stroke) and `fill` (the fill colour)
-
-* * *
-
-Colour the distributions in the histogram by whether `waiting` is above or below 
-`60`. What happens?
-
-```{r}
-ggplot(faithful) + 
-  geom_histogram(aes(x = eruptions))
-```
-
-Change the plot above by setting `position = 'dodge'` in `geom_histogram()` 
-(while keeping the colouring by `waiting`). What do `position` control? 
-
-* * *
-
-Add a line that separates the two point distributions. See `?geom_abline` for 
-how to draw straight lines from a slope and intercept.
-
-```{r}
-ggplot(faithful) + 
-  geom_point(aes(x = eruptions, y = waiting))
-```
-
 ### Stat
 We will use the `mpg` dataset giving information about fuel economy on different 
 car models.
@@ -336,7 +309,6 @@ additional computations to perform and we use the `identity` stat to leave the
 data alone
 
 ```{r}
-library(dplyr)
 mpg_counted <- mpg %>% 
   count(class, name = 'count')
 ggplot(mpg_counted) + 
@@ -374,28 +346,6 @@ ggplot(mpg) +
   geom_density(aes(x = hwy, y = after_stat(scaled)))
 ```
 
-#### Exercises
-While most people use `geom_*()` when adding layers, it is just as valid to add 
-a `stat_*()` with an attached geom. Look at `geom_bar()` and figure out which
-stat it uses as default. Then modify the code to use the stat directly instead
-(i.e. adding `stat_*()` instead of `geom_bar()`)
-
-```{r}
-ggplot(mpg) + 
-  geom_bar(aes(x = class))
-```
-
-* * *
-
-Use `stat_summary()` to add a red dot at the mean `hwy` for each group
-
-```{r}
-ggplot(mpg) + 
-  geom_jitter(aes(x = class, y = hwy), width = 0.2)
-```
-
-Hint: You will need to change the default geom of `stat_summary()`
-
 ### Scales
 Scales define how the mapping you specify inside `aes()` should happen. All 
 mappings have an associated scale even if not specified.
@@ -423,58 +373,6 @@ ggplot(mpg) +
   scale_y_continuous(trans = 'log10')
 ```
 
-#### Exercises
-Use `RColorBrewer::display.brewer.all()` to see all the different palettes from
-Color Brewer and pick your favourite. Modify the code below to use it
-
-```{r}
-ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy, colour = class)) + 
-  scale_colour_brewer(type = 'qual')
-```
-
-* * *
-
-Modify the code below to create a bubble chart (scatterplot with size mapped to
-a continuous variable) showing `cyl` with size. Make sure that only the present 
-amount of cylinders (4, 5, 6, and 8) are present in the legend.
-
-```{r}
-ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy, colour = class, size = cyl)) + 
-  scale_colour_brewer(type = 'qual') + 
-  scale_size_area(breaks = c(4, 5, 6, 8))
-```
-
-Hint: The `breaks` argument in the scale is used to control which values are
-present in the legend.
-
-Explore the different types of size scales available in ggplot2. Is the default
-the most appropriate here?
-
-* * *
-
-Modify the code below so that colour is no longer mapped to the discrete `class`
-variable, but to the continuous `cty` variable. What happens to the guide?
-
-```{r}
-ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy, colour = class, size = cty))
-```
-
-* * *
-
-The type of guide can be controlled with the `guide` argument in the scale, or 
-with the `guides()` function. Continuous colours have a gradient colour bar by 
-default, but setting it to `legend` will turn it back to the standard look. What 
-happens when multiple aesthetics are mapped to the same variable and uses the 
-guide type?
-
-```{r}
-ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy, colour = cty, size = cty))
-```
-
 ### Facets
 The facet defines how data is split among panels. The default facet 
 (`facet_null()`) puts all the data in a single panel, while `facet_wrap()` and
@@ -485,44 +383,6 @@ ggplot(mpg) +
   geom_point(aes(x = displ, y = hwy)) + 
   facet_wrap(~ class)
 ```
-
-```{r}
-ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy)) + 
-  facet_grid(year ~ drv)
-```
-
-#### Exercises
-One of the great things about facets is that they share the axes between the 
-different panels. Sometimes this is undiserable though, and the behaviour can
-be changed with the `scales` argument. Experiment with the different possible
-settings in the plot below:
-
-```{r}
-ggplot(mpg) + 
-  geom_point(aes(x = displ, y = hwy)) + 
-  facet_wrap(~ drv)
-```
-
-* * *
-
-Usually the space occupied by each panel is equal. This can create problems when
-different scales are used. Modify the code below so that the y scale differs 
-between the panels in the plot. What happens?
-
-```{r}
-ggplot(mpg) + 
-  geom_bar(aes(y = manufacturer)) + 
-  facet_grid(class ~ .)
-```
-
-Use the `space` argument in `facet_grid()` to change the plot above so each bar 
-has the same width again.
-
-* * *
-
-Facets can be based on multiple variables by adding them together. Try to 
-recreate the same panels present in the plot below by using `facet_wrap()`
 
 ```{r}
 ggplot(mpg) + 
@@ -564,18 +424,6 @@ ggplot(mpg) +
   coord_cartesian(ylim = c(0, 40))
 ```
 
-#### Exercises
-In the same way as limits can be set in both the positional scale and the coord,
-so can transformations, using `coord_trans()`. Modify the code below to apply a
-log transformation to the y axis; first using `scale_y_continuous()`, 
-and then using `coord_trans()`. Compare the results — how do they differ?
-
-```{r}
-ggplot(mpg) + 
-  geom_point(aes(x = hwy, y = displ))
-```
-
-* * *
 
 Coordinate systems are particularly important in cartography. While we will not 
 spend a lot of time with it in this workshop, spatial plotting is well supported
@@ -662,30 +510,13 @@ This video will show you other packages associated with ggplot
 
 
 ```{r, echo=FALSE}
-packages <- c(
-  'ggplot2',
-  'ggrepel',
-  'patchwork',
-  'ggraph',
-  'dplyr',
-  'patchwork',
-  'gganimate',
-  'gifski',
-  'ggrepel',
-  'ggforce',
-  'ggraph',
-  'ggthemes',
-  'maps',
-  'sf',
-  'tidyr',
-  'concaveman',
-  'remotes'
-)
+packages <- c('ggrepel','patchwork',
+  'ggraph','patchwork','gganimate',
+  'gifski','ggrepel','ggforce','ggraph',
+  'ggthemes','maps','sf','concaveman','remotes')
 # Uncomment the next lines (remove the first #) to install the packages
 # install.packages(packages)
 # remotes::install_github("hrbrmstr/hrbrthemes")
-# Load standard packages
-library(ggplot2)
 ```
 
 
@@ -694,20 +525,13 @@ We start by creating 3 separate plots
 ```{r}
 p1 <- ggplot(msleep) + 
   geom_boxplot(aes(x = sleep_total, y = vore, fill = vore))
-p1
-```
 
-```{r}
 p2 <- ggplot(msleep) + 
   geom_bar(aes(y = vore, fill = vore))
-p2
-```
 
-```{r}
 p3 <- ggplot(msleep) + 
   geom_point(aes(x = bodywt, y = sleep_total, colour = vore)) + 
   scale_x_log10()
-p3
 ```
 
 Combining them with patchwork is a breeze using the different operators
@@ -724,24 +548,9 @@ p_all & theme(legend.position = 'none')
 p_all <- p_all & theme(legend.position = 'none')
 p_all + plot_annotation(
   title = 'Mammalian sleep patterns',
-  tag_levels = 'A'
-)
+  tag_levels = 'A')
 ```
 
-#### Excercises
-Patchwork will assign the same amount of space to each plot by default, but this
-can be controlled with the `widths` and `heights` argument in `plot_layout()`. 
-This can take a numeric vector giving their relative sizes (e.g. `c(2, 1)` will 
-make the first plot twice as big as the second). Modify the code below so that
-the middle plot takes up half of the total space:
-
-```{r}
-p <- ggplot(mtcars) + 
-  geom_point(aes(x = disp, y = mpg))
-p + p + p
-```
-
-* * *
 
 The `&` operator can be used with any type of ggplot2 object, not just themes.
 Modify the code below so the two plots share the same y-axis (same limits)
@@ -753,8 +562,6 @@ p2 <- ggplot(mtcars[mtcars$gear == 4,]) +
   geom_point(aes(x = disp, y = mpg))
 p1 + p2
 ```
-
-* * *
 
 Patchwork contains many features for fine tuning the layout and annotation. Very
 complex layouts can be obtained by providing a design specification to the 
@@ -1078,11 +885,5 @@ ggplot(mpg) +
   scale_x_binned(n.breaks = 30, guide = guide_axis(n.dodge = 2))
 ```
 
-## Broom
-Broom is a package associated with the tidyverse that is used to summarize statistical models.
 
-```{r}
-library(broom)
-
-```
 
